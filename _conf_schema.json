@@ -1,0 +1,197 @@
+{
+  "ENABLED": {
+    "description": "自由意志总开关",
+    "type": "bool",
+    "default": true
+  },
+  "OWNER_UID": {
+    "description": "主人 QQ 号（主动分享/条条必回的对象）",
+    "type": "string",
+    "default": ""
+  },
+  "OWNER_NAME": {
+    "description": "主人称呼",
+    "type": "string",
+    "default": "主人"
+  },
+  "PERSONA_ID": {
+    "description": "使用哪个人设（留空=自动取最近更新的人设）",
+    "type": "string",
+    "default": ""
+  },
+  "PLATFORM_ID": {
+    "description": "平台适配器 id（aiocqhttp）",
+    "type": "string",
+    "default": "aiocqhttp"
+  },
+  "RECORD_DIR": {
+    "description": "行程记录目录（按日生成 YYYY-MM-DD.md / .json 与 dashboard.html）",
+    "type": "string",
+    "default": "行程记录"
+  },
+  "SLEEP_START": {
+    "description": "睡觉开始时间（HH:MM，只响应主人）",
+    "type": "string",
+    "default": "23:00"
+  },
+  "SLEEP_END": {
+    "description": "睡觉结束时间（HH:MM，醒来新建当天统计）",
+    "type": "string",
+    "default": "07:00"
+  },
+  "NAP_START": {
+    "description": "午休开始时间",
+    "type": "string",
+    "default": "11:55"
+  },
+  "NAP_END": {
+    "description": "午休结束时间",
+    "type": "string",
+    "default": "13:55"
+  },
+  "TICK_SECONDS": {
+    "description": "自由意志心跳间隔（秒）",
+    "type": "int",
+    "default": 20
+  },
+  "HUMAN_LEARNING_RATIO": {
+    "description": "学习人性化聊天的时间占比目标（0-1）",
+    "type": "float",
+    "default": 0.5
+  },
+  "STUDY_LLM_ENABLED": {
+    "description": "学习活动时调用模型生成真实聊天规律笔记",
+    "type": "bool",
+    "default": true
+  },
+  "CAT_ENABLED": {
+    "description": "养猫开关（饿了优先喂猫）",
+    "type": "bool",
+    "default": true
+  },
+  "CAT_NAME": {
+    "description": "猫的名字",
+    "type": "string",
+    "default": "小鲸鱼"
+  },
+  "CAT_HUNGER_PER_HOUR": {
+    "description": "猫每小时增加的饥饿值",
+    "type": "int",
+    "default": 12
+  },
+  "CAT_FEED_THRESHOLD": {
+    "description": "饥饿值达到多少需要喂",
+    "type": "int",
+    "default": 70
+  },
+  "CAT_FEED_MINUTES": {
+    "description": "喂猫持续时间（分钟）",
+    "type": "int",
+    "default": 10
+  },
+  "PROACTIVE_SHARE_ENABLED": {
+    "description": "主动找主人聊天/分享",
+    "type": "bool",
+    "default": true
+  },
+  "SHARE_LLM_ENABLED": {
+    "description": "主动分享时让模型按当前活动生成内容（关闭则用模板）",
+    "type": "bool",
+    "default": true
+  },
+  "SHARE_MIN_GAP_MINUTES": {
+    "description": "两次主动分享最小间隔（分钟）",
+    "type": "int",
+    "default": 45
+  },
+  "SHARE_MAX_GAP_MINUTES": {
+    "description": "两次主动分享最大间隔（分钟）",
+    "type": "int",
+    "default": 150
+  },
+  "SHARE_PROBABILITY": {
+    "description": "切换活动时主动分享的概率（%）",
+    "type": "int",
+    "default": 35
+  },
+  "INJECT_CONTEXT": {
+    "description": "聊天时注入当前行程/记忆（让她知道自己在干嘛）",
+    "type": "bool",
+    "default": true
+  },
+  "CHAT_MEMORY_ENABLED": {
+    "description": "把和主人的对话记进自由意志记忆（方便之后自然提起）",
+    "type": "bool",
+    "default": true
+  },
+  "WAKE_GREETING_ENABLED": {
+    "description": "早上醒来主动跟主人说一句",
+    "type": "bool",
+    "default": true
+  },
+  "RECENT_ACTIVITY_MINUTES": {
+    "description": "注入上下文时回溯多少分钟内的行程",
+    "type": "int",
+    "default": 240
+  },
+  "OWNER_ACTIVE_SECONDS": {
+    "description": "主人发消息后视为“陪主人聊天”的持续时间（秒）",
+    "type": "int",
+    "default": 120
+  },
+  "ENFORCE_REST_SILENCE": {
+    "description": "睡觉/午休期间除主人外不回应任何消息",
+    "type": "bool",
+    "default": true
+  },
+  "QQ_STATUS_ENABLED": {
+    "description": "尝试同步 QQ 在线状态（休息时请勿打扰；协议端 set_diy_status 不支持时自动降级）",
+    "type": "bool",
+    "default": false
+  },
+  "QQ_HTTP_URL": {
+    "description": "SnowLuma OneBot HTTP 地址（主动分享兜底用）",
+    "type": "string",
+    "default": "http://127.0.0.1:3000/"
+  },
+  "QQ_HTTP_TOKEN": {
+    "description": "SnowLuma OneBot HTTP access token（兜底发送用）",
+    "type": "string",
+    "default": ""
+  },
+  "QQ_DYNAMIC_DRAFT_ENABLED": {
+    "description": "按自由意志生成 QQ 动态草稿并记入行程（不直接发布）",
+    "type": "bool",
+    "default": true
+  },
+  "DYNAMIC_DAILY_MAX": {
+    "description": "每天最多几条 QQ 动态",
+    "type": "int",
+    "default": 3
+  },
+  "DYNAMIC_MIN_GAP_MINUTES": {
+    "description": "两条 QQ 动态之间至少间隔多少分钟",
+    "type": "int",
+    "default": 180
+  },
+  "AUTO_PUBLISH_QZONE": {
+    "description": "动态草稿自动交给陪伴插件发布到 QQ 空间（需先填 QZONE_COOKIE）",
+    "type": "bool",
+    "default": true
+  },
+  "EXTERNAL_ACTIVITY_ENABLED": {
+    "description": "允许其他插件通过 external_activity.json 注入活动",
+    "type": "bool",
+    "default": true
+  },
+  "MEMORY_MAX_ITEMS": {
+    "description": "自由意志记忆条数上限",
+    "type": "int",
+    "default": 200
+  },
+  "DASHBOARD_REBUILD_SECONDS": {
+    "description": "看板 HTML 重建最小间隔（秒）",
+    "type": "int",
+    "default": 30
+  }
+}
