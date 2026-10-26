@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>自由意志看板</title>
+<style>
+  :root{--bg:#0f1420;--card:#182133;--text:#e8eefc;--muted:#8fa3c8;--line:#26324a;
+    --study:#6ea8fe;--free:#7ee2b8;--life:#f6c177;--cat:#e07a9a;--owner:#c58af9;--rest:#6b7a99;--social:#f0a868}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:22px}
+  h1{font-size:21px;margin:0 0 4px}.sub{color:var(--muted);font-size:12px;margin-bottom:16px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .card .k{color:var(--muted);font-size:12px}.card .v{font-size:19px;font-weight:700;margin-top:2px}
+  .now{background:linear-gradient(135deg,#1b2740,#162033);border:1px solid #33466b;border-radius:14px;padding:16px;margin-bottom:18px}
+  .now .t{color:var(--muted);font-size:12px}.now .n{font-size:18px;font-weight:700;margin:4px 0}
+  .timeline{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .ev{display:flex;gap:12px;padding:7px 0;border-bottom:1px dashed #243049}.ev:last-child{border-bottom:0}
+  .ev .time{color:var(--muted);font-variant-numeric:tabular-nums;width:52px;flex:none}
+  .ev .tag{font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);flex:none;height:22px;line-height:20px}
+  .ev .txt{flex:1}.ev .dur{color:var(--muted);font-size:12px}
+  .b-study{color:var(--study);border-color:#2f4f86}.b-free{color:var(--free);border-color:#2b5e4a}
+  .b-life{color:var(--life);border-color:#6a4c20}.b-cat{color:var(--cat);border-color:#6b3346}
+  .b-owner{color:var(--owner);border-color:#4a3566}.b-rest{color:var(--rest);border-color:#3a4460}.b-social{color:var(--social);border-color:#6a4a24}
+  .err{color:#ff9a9a;background:#2a1a1e;border:1px solid #5a2a33;padding:10px;border-radius:10px;margin-bottom:12px}
+  .nav{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .nav button{background:#1a2438;color:#9db7e8;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:12px}
+  .nav button.on{background:#25365a;color:#dbe7ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>自由意志看板</h1>
+  <div class="sub" id="sub">加载中…</div>
+  <div class="nav"><button class="on" data-d="today">今天</button><button data-d="history">最近 7 天</button></div>
+  <div id="err" class="err" hidden></div>
+  <div class="now" id="now"></div>
+  <div class="cards" id="cards"></div>
+  <div class="timeline" id="timeline"></div>
+  <div class="sub" style="margin-top:14px">数据来自插件实时状态与每日行程文件（插件配置的行程记录目录）</div>
+</div>
+<script>
+const API = "/api/plug/astrbot_plugin_free_will/page";
+const CAT={study:"学习人性",free:"自由活动",life:"日常生活",cat:"陪猫",owner:"陪主人",rest:"休息",social:"社交",dynamic:"动态",share:"主动分享",status:"状态"};
+const COLOR={study:"b-study",free:"b-free",life:"b-life",cat:"b-cat",owner:"b-owner",rest:"b-rest",social:"b-social",dynamic:"b-social"};
+let view="today";
+async function call(path){
+  const res=await fetch(API+path,{headers:{"Content-Type":"application/json"}});
+  const data=await res.json();
+  if(!res.ok) throw new Error(data.message||("请求失败 "+res.status));
+  return data;
+}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function renderState(st){
+  const el=document.getElementById("now");
+  if(!st){el.innerHTML='<div class="t">自由意志</div><div class="n">还没启动</div>';return;}
+  const a=st.state||{};
+  const rest=st.rest;
+  const title=rest?(rest==="sleep"?"正在睡觉":"正在午休"):(a.name?("正在 "+a.name):"在放空");
+  const range=a.start?`${a.start} - ${a.end}`:"";
+  el.innerHTML=`<div class="t">当前状态</div><div class="n">${esc(title)}</div>
+    <div class="sub" style="margin:0">${esc(a.detail||"")} ${range?(" · "+range):""}</div>
+    <div class="sub" style="margin:6px 0 0">猫：${esc((st.cat||{}).name||"猫")} 饥饿 ${Math.round((st.cat||{}).hunger||0)}/100</div>`;
+}
+function renderCards(stats,cat){
+  const items=[
+    ["学习人性",(stats.study_minutes||0)+" 分钟","b-study"],
+    ["自由活动",(stats.free_minutes||0)+" 分钟","b-free"],
+    ["日常生活",(stats.life_minutes||0)+" 分钟","b-life"],
+    ["陪猫",(stats.cat_minutes||0)+" 分钟","b-cat"],
+    ["陪主人",(stats.owner_minutes||0)+" 分钟","b-owner"],
+    ["休息",(stats.rest_minutes||0)+" 分钟","b-rest"],
+    ["喂猫",(stats.feeds||0)+" 次","b-cat"],
+    ["主动分享",(stats.shares||0)+" 次","b-study"],
+    ["动态已发",(stats.dynamic_published||0)+" 条","b-life"],
+    ["猫饥饿",Math.round((cat||{}).hunger||0)+"/100","b-cat"],
+  ];
+  document.getElementById("cards").innerHTML=items.map(([k,v,c])=>`<div class="card"><div class="k">${k}</div><div class="v ${c}">${v}</div></div>`).join("");
+}
+function renderEvents(events){
+  const el=document.getElementById("timeline");
+  const list=(events||[]).slice().reverse();
+  el.innerHTML=list.map(ev=>{
+    const c=COLOR[ev.category]||"b-free";
+    return `<div class="ev"><div class="time">${esc(ev.t||"")}</div><div class="tag ${c}">${esc(ev.kind||"")}</div>
+      <div class="txt">${esc(ev.name||"")}${ev.detail?("："+esc(ev.detail)):""} ${ev.duration?`<span class="dur">${esc(ev.duration)}</span>`:""}</div></div>`;
+  }).join("")||'<div class="sub">还没有记录</div>';
+}
+async function loadToday(){
+  const st=await call("/state");
+  renderState(st);
+  const t=await call("/today");
+  const daily=(t||{}).daily||{};
+  document.getElementById("sub").textContent=`${t.day||""} · 每 15 秒刷新`;
+  renderCards(daily.stats||{},daily.cat||{});
+  renderEvents(daily.events||[]);
+}
+async function loadHistory(){
+  const h=await call("/history");
+  const days=(h||{}).days||[];
+  document.getElementById("cards").innerHTML="";
+  const el=document.getElementById("timeline");
+  el.innerHTML=days.map(d=>{
+    const evs=(d.events||[]).slice(-12).reverse();
+    return `<div style="margin-bottom:14px"><div class="sub" style="margin:0 0 6px">${esc(d.day||"")} · 学习 ${(d.stats||{}).study_minutes||0} 分 / 自由 ${(d.stats||{}).free_minutes||0} 分</div>`+
+      evs.map(ev=>`<div class="ev"><div class="time">${esc(ev.t||"")}</div><div class="tag ${COLOR[ev.category]||"b-free"}">${esc(ev.kind||"")}</div><div class="txt">${esc(ev.name||"")}${ev.detail?("："+esc(ev.detail)):""}</div></div>`).join("")+`</div>`;
+  }).join("")||'<div class="sub">没有历史记录</div>';
+}
+async function refresh(){
+  try{
+    document.getElementById("err").hidden=true;
+    if(view==="today") await loadToday(); else await loadHistory();
+  }catch(e){
+    const el=document.getElementById("err"); el.hidden=false; el.textContent="加载失败："+e.message;
+  }
+}
+document.querySelectorAll(".nav button").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  view=btn.dataset.d;
+  refresh();
+}));
+refresh();
+setInterval(refresh,15000);
+</script>
+</body>
+</html>
