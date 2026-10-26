@@ -1,0 +1,16 @@
+name: astrbot_plugin_free_will
+display_name: 自由意志核心
+desc: 常驻自由意志调度：睡眠/午休、行程记录（按日文件与可视化看板）、养猫、主动找主人分享、聊天上下文注入与可视化看板
+short_desc: 让她有自己的日程和自由意志，陪主人聊天时知道自己在干嘛
+version: 0.1.0
+author: dsh
+repo: "https://github.com/yunshanling/astrbot_plugin_free_will"
+astrbot_version: ">=4.22"
+tags:
+  - 自由意志
+  - 行程记录
+  - 养猫
+  - 主动消息
+pages:
+  - name: free-will
+    title: 自由意志看板
