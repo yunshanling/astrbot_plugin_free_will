@@ -181,7 +181,10 @@ class FreeWillCore:
     # ── 路径与配置 ─────────────────────────────────────────────
     @property
     def record_dir(self) -> Path:
-        return Path(str(_b(self.config, "RECORD_DIR", "行程记录")))
+        raw = str(_b(self.config, "RECORD_DIR", "") or "").strip()
+        if raw:
+            return Path(raw)
+        return self.data_dir / "records"
 
     def cfg(self, key: str, default: Any) -> Any:
         return _b(self.config, key, default)
@@ -1133,32 +1136,36 @@ class FreeWillPlugin(Star):
         self._start_lock = asyncio.Lock()
         self._persona_text: str = ""
 
-    def _load_persona_text(self) -> str:
+    async def _load_persona_text(self) -> str:
         if self._persona_text:
             return self._persona_text
         try:
-            import sqlite3
-
-            db = self.data_dir.parent.parent / "data_v4.db"
-            if not db.exists():
+            pm = getattr(self.context, "persona_manager", None)
+            if pm is None:
                 return ""
             desired = str(self.cfg("PERSONA_ID", "") or "").strip()
-            con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
-            try:
-                if desired:
-                    row = con.execute(
-                        "select system_prompt from personas where persona_id = ? limit 1",
-                        (desired,),
-                    ).fetchone()
-                else:
-                    row = con.execute(
-                        "select system_prompt from personas where persona_id != 'default' "
-                        "order by updated_at desc limit 1"
-                    ).fetchone()
-            finally:
-                con.close()
-            if row and row[0]:
-                self._persona_text = str(row[0])[:1200]
+            text = ""
+            if desired:
+                persona = await pm.get_persona(desired)
+                text = str(getattr(persona, "system_prompt", "") or "")
+            else:
+                personas = await pm.get_all_personas()
+                personas = [
+                    p for p in (personas or [])
+                    if str(getattr(p, "persona_id", "")) != "default"
+                ]
+                if personas:
+                    def _ts(p):
+                        v = getattr(p, "updated_at", None)
+                        try:
+                            return v.timestamp()
+                        except Exception:
+                            return 0.0
+
+                    persona = max(personas, key=_ts)
+                    text = str(getattr(persona, "system_prompt", "") or "")
+            if text:
+                self._persona_text = text[:1200]
         except Exception:
             self._persona_text = ""
         return self._persona_text
@@ -1265,7 +1272,7 @@ class FreeWillPlugin(Star):
                     "\n\n请从这些聊天里总结一条具体、可执行的聊天规律，30字以内。\n"
                     "不要空话，不要“要真诚”这种。只输出规律本身。"
                 )
-            persona = self._load_persona_text()
+            persona = await self._load_persona_text()
             if persona:
                 prompt = f"你的人设（节选）：{persona[:400]}\n\n" + prompt
             else:
@@ -1318,7 +1325,7 @@ class FreeWillPlugin(Star):
                 return None
             name = str(act.get("name") or "发呆")
             detail = str(act.get("detail") or "")
-            persona = self._load_persona_text()
+            persona = await self._load_persona_text()
             prompt = (
                 (f"你的人设（节选）：{persona[:500]}\n\n" if persona else "")
                 + f"你是一个住在 QQ 里的自由意志体，现在正在「{name}」。{('具体情况：' + detail) if detail else ''}\n"
@@ -1645,7 +1652,14 @@ class FreeWillPlugin(Star):
             query = str(getattr(event, "message_str", "") or "")
             text = self.core.context_prompt(event, query=query)
             if text:
-                req.system_prompt = (req.system_prompt or "") + "\n\n" + text
+                from astrbot.core.agent.message import TextPart
+
+                part = TextPart(text=text).mark_as_temp()
+                parts = getattr(req, "extra_user_content_parts", None)
+                if parts is None:
+                    req.extra_user_content_parts = []
+                    parts = req.extra_user_content_parts
+                parts.append(part)
         except Exception as exc:
             logger.warning("[FreeWill] 行程注入失败: %s", exc)
 
@@ -1734,7 +1748,7 @@ class FreeWillPlugin(Star):
             lines.append(f"SnowLuma HTTP：{'OK' if ok else '失败 ' + str(data)[:80]}")
             if core.state.get("last_send_error"):
                 lines.append(f"最近发送错误：{core.state['last_send_error'][:120]}")
-            lines.append("看板：D:\\Deepseek\\行程记录\\dashboard.html")
+            lines.append(f"看板：{core.record_dir / 'dashboard.html'}")
             return event.plain_result("\n".join(lines))
         if sub in ("猫", "喂猫"):
             core._start_feed(_now())

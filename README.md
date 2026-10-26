@@ -9,7 +9,7 @@
 - **常驻脚本**：独立 asyncio 任务，与会话解耦；状态持久化，重启续跑。
 - **作息**：默认 23:00–07:00 睡觉、11:55–13:55 午休；休息时只有主人能叫醒，其他人消息静默。
 - **优先级**：主人会话(1) > 猫状态(2) > 自由意志(3) > 其它(4)。
-- **行程记录**：按日生成 `YYYY-MM-DD.md` / `.json`，每条带 `HH:MM`；同时生成 `dashboard.html` 可视化看板（统计卡片 + 时间线）。
+- **行程记录**：默认保存在插件数据目录 `data/plugin_data/astrbot_plugin_free_will/records/`，按日生成 `YYYY-MM-DD.md` / `.json`，每条带 `HH:MM`；同时生成 `dashboard.html` 可视化看板（统计卡片 + 时间线）。
 - **每日重置**：睡醒后新建当天统计，并写昨日总结。
 - **养猫**：饥饿值随时间增长，≥阈值自动插入「喂猫」，喂完继续自己的事。
 - **学习人性**：约一半清醒时间用于学习；从本地语料抽样，让模型总结具体聊天规律，写入记忆与 `学习笔记.md`。
@@ -21,7 +21,7 @@
 ## 安装
 
 1. 把本目录放进 AstrBot 的 `data/plugins/astrbot_plugin_free_will/`。
-2. 重启 AstrBot，在插件配置里填 **主人 QQ 号**（`OWNER_UID`）和行程记录目录（`RECORD_DIR`）。
+2. 重启 AstrBot，在插件配置里填 **主人 QQ 号**（`OWNER_UID`）；行程记录目录（`RECORD_DIR`）保持默认即可。
 3. 如需语音/空间等联动，按需开启对应配置。
 
 要求：AstrBot >= 4.22。
@@ -43,7 +43,7 @@
 | 键 | 说明 |
 |---|---|
 | `OWNER_UID` | 主人 QQ 号（必填） |
-| `RECORD_DIR` | 行程记录目录，默认 `行程记录` |
+| `RECORD_DIR` | 行程记录目录，留空=插件数据目录下的 `records/` |
 | `SLEEP_START` / `SLEEP_END` | 睡觉时段 |
 | `NAP_START` / `NAP_END` | 午休时段 |
 | `HUMAN_LEARNING_RATIO` | 学习人性占比目标（默认 0.5） |

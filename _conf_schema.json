@@ -25,9 +25,9 @@
     "default": "aiocqhttp"
   },
   "RECORD_DIR": {
-    "description": "行程记录目录（按日生成 YYYY-MM-DD.md / .json 与 dashboard.html）",
+    "description": "行程记录目录（留空=插件数据目录下的 records/，建议保持默认）",
     "type": "string",
-    "default": "行程记录"
+    "default": ""
   },
   "SLEEP_START": {
     "description": "睡觉开始时间（HH:MM，只响应主人）",
